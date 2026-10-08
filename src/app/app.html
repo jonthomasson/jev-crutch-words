@@ -1,0 +1,225 @@
+<header class="topbar">
+  <div class="brand">
+    <h1>Crutch Coach</h1>
+    <p class="tagline">Code counts your filler words. Jev decides which ones are fillers.</p>
+  </div>
+
+  <div class="controls">
+    <span class="chip" [class.chip-live]="speech.listening()" aria-live="polite">{{ statusLabel() }}</span>
+    <span class="chip" [class.chip-ok]="jev.status() === 'ready'" [class.chip-warn]="jev.status() !== 'ready'">
+      {{ jevStatusLabel() }}
+    </span>
+
+    <label class="threshold">
+      Nudge at
+      <input
+        type="number"
+        min="1"
+        max="30"
+        step="1"
+        [value]="coach.thresholdPerMinute()"
+        (input)="onThresholdInput($event)"
+        aria-describedby="threshold-help"
+      />
+      <span id="threshold-help">fillers / min</span>
+    </label>
+
+    @if (speech.listening()) {
+      <button type="button" class="btn btn-stop" (click)="coach.stop()">Stop</button>
+    } @else {
+      <button type="button" class="btn btn-start" (click)="coach.start()" [disabled]="!speech.supported">
+        Start listening
+      </button>
+    }
+    <button type="button" class="btn btn-ghost" (click)="coach.reset()">Reset</button>
+  </div>
+</header>
+
+@if (speech.error(); as err) {
+  <p class="banner banner-error" role="alert">{{ err }}</p>
+}
+@if (!speech.supported) {
+  <p class="banner banner-warn">
+    This browser does not implement the Web Speech API. Use Chrome, Edge or Safari for the demo.
+  </p>
+}
+@if (jev.status() === 'no-key' || jev.status() === 'unreachable') {
+  <p class="banner banner-warn">
+    Jev is offline, so only code-matched fillers (um, uh, you know…) are counted. Start the API with
+    <code>npm run server</code> and set <code>TYPESAFE_API_KEY</code> in <code>.env</code>.
+  </p>
+}
+@if (jev.lastError(); as err) {
+  <p class="banner banner-error" role="alert">Jev request failed: {{ err }}</p>
+}
+
+<main class="layout">
+  <!-- ===== Live transcript ===== -->
+  <section class="card transcript" aria-labelledby="transcript-h">
+    <div class="card-head">
+      <h2 id="transcript-h">Live transcript</h2>
+      <ul class="legend" aria-label="Highlight legend">
+        <li><mark class="mk mk-hard">um</mark> code says filler</li>
+        <li><mark class="mk mk-filler">like</mark> Jev says filler</li>
+        <li><mark class="mk mk-unsure">so</mark> Jev unsure</li>
+        <li><mark class="mk mk-meaningful">like</mark> Jev says meaningful</li>
+        <li><mark class="mk mk-pending">right</mark> waiting for Jev</li>
+      </ul>
+    </div>
+
+    <div class="transcript-body">
+      @for (seg of rendered(); track seg.id) {
+        <p class="segment">
+          @for (span of seg.spans; track $index) {
+            @if (span.kind === 'text') {
+              <span>{{ span.text }}</span>
+            } @else {
+              <mark class="mk" [class]="'mk mk-' + span.kind" [title]="kindTitle(span)">{{ span.text }}</mark>
+            }
+          }
+        </p>
+      } @empty {
+        <p class="placeholder">
+          Press <strong>Start listening</strong> and talk for a minute. Try a sentence with both kinds of
+          "like": <em>"I like pizza, like, a lot."</em>
+        </p>
+      }
+      @if (speech.interim(); as interim) {
+        <p class="segment interim" aria-hidden="true">{{ interim }}</p>
+      }
+    </div>
+
+    <form class="manual" (submit)="onManualSubmit($event, manual)">
+      <label for="manual-line">No microphone? Type a line instead</label>
+      <div class="manual-row">
+        <input
+          #manual
+          id="manual-line"
+          type="text"
+          autocomplete="off"
+          placeholder="So, um, I was like, basically done, you know?"
+        />
+        <button type="submit" class="btn btn-ghost">Add</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- ===== Code-side stats ===== -->
+  <aside class="column">
+    <section class="card" aria-labelledby="stats-h">
+      <h2 id="stats-h">Counted in code</h2>
+      <div class="tiles">
+        <div class="tile" [class.tile-hot]="coach.fillersPerMinute() >= coach.thresholdPerMinute()">
+          <span class="tile-value">{{ coach.fillersPerMinute() | number: '1.0-1' }}</span>
+          <span class="tile-label">fillers / min (last 60 s)</span>
+        </div>
+        <div class="tile">
+          <span class="tile-value">{{ coach.totalFillers() }}</span>
+          <span class="tile-label">fillers total</span>
+        </div>
+        <div class="tile">
+          <span class="tile-value">{{ coach.words() }}</span>
+          <span class="tile-label">words spoken</span>
+        </div>
+        <div class="tile">
+          <span class="tile-value">{{ elapsedLabel() }}</span>
+          <span class="tile-label">session</span>
+        </div>
+      </div>
+
+      @if (coach.countsByWord().length) {
+        <h3>Your crutch words</h3>
+        <ul class="bars" aria-label="Filler counts by word">
+          @for (row of coach.countsByWord(); track row.word) {
+            <li>
+              <span class="bar-label">{{ row.word }}</span>
+              <span class="bar-track"><span class="bar-fill" [style.width.%]="(row.count / maxCount()) * 100"></span></span>
+              <span class="bar-value">{{ row.count }}</span>
+            </li>
+          }
+        </ul>
+      }
+      @if (coach.pendingCandidates() > 0) {
+        <p class="muted">{{ coach.pendingCandidates() }} ambiguous word(s) waiting for Jev…</p>
+      }
+    </section>
+
+    <!-- ===== Jev's answers ===== -->
+    <section class="card" aria-labelledby="jev-h">
+      <div class="card-head">
+        <h2 id="jev-h">Judged by Jev</h2>
+        @if (coach.analyzing()) {
+          <span class="chip chip-live">asking…</span>
+        }
+      </div>
+
+      @if (coach.latest(); as latest) {
+        <dl class="kv">
+          <div>
+            <dt>Clarity (Score)</dt>
+            <dd>
+              <strong>{{ disruptionLabel() }}</strong>
+              <span class="muted">score {{ latest.disruption.score | number: '1.2-2' }} · confidence {{ latest.disruption.confidence | percent: '1.0-0' }}</span>
+            </dd>
+          </div>
+          <div>
+            <dt>Sounds hesitant (Noul)</dt>
+            <dd><strong>{{ latest.hesitant | percent: '1.0-0' }}</strong> <span class="muted">probability of yes</span></dd>
+          </div>
+          <div>
+            <dt>Dominant habit (Choice)</dt>
+            <dd>
+              <strong>{{ latest.dominantHabit.choice }}</strong>
+              <span class="muted">confidence {{ latest.dominantHabit.confidence | percent: '1.0-0' }}</span>
+            </dd>
+          </div>
+        </dl>
+
+        <h3>Clarity rubric probabilities</h3>
+        <ul class="bars" aria-label="Probability per clarity level">
+          @for (bar of disruptionBars(); track bar.label) {
+            <li>
+              <span class="bar-label">{{ bar.label }}</span>
+              <span class="bar-track"><span class="bar-fill bar-jev" [style.width.%]="bar.probability * 100"></span></span>
+              <span class="bar-value">{{ bar.probability | percent: '1.0-0' }}</span>
+            </li>
+          }
+        </ul>
+
+        <h3>Habit probabilities</h3>
+        <ul class="bars" aria-label="Probability per habit">
+          @for (bar of habitBars(); track bar.key) {
+            <li>
+              <span class="bar-label">{{ bar.key }}</span>
+              <span class="bar-track"><span class="bar-fill bar-jev" [style.width.%]="bar.probability * 100"></span></span>
+              <span class="bar-value">{{ bar.probability | percent: '1.0-0' }}</span>
+            </li>
+          }
+        </ul>
+
+        <p class="muted meta">
+          {{ latest.model }} · {{ latest.latencyMs }} ms · {{ latest.usage.inputTokens }} input tokens ·
+          {{ latest.candidates.length }} occurrences judged · {{ coach.requestCount() }} requests this session
+        </p>
+
+        <details>
+          <summary>Request sent to Jev (paste this into the playground)</summary>
+          <pre>{{ latest.request | json }}</pre>
+        </details>
+      } @else {
+        <p class="placeholder">Jev's first answer appears about a second after your first full sentence.</p>
+      }
+    </section>
+  </aside>
+</main>
+
+<div class="toast-region" role="status" aria-live="polite">
+  @if (coach.nudge(); as msg) {
+    <div class="toast">
+      <span>{{ msg }}</span>
+      <button type="button" class="btn btn-ghost btn-small" (click)="coach.dismissNudge()" aria-label="Dismiss reminder">
+        ✕
+      </button>
+    </div>
+  }
+</div>

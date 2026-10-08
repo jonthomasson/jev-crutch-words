@@ -1,0 +1,44 @@
+{
+  "name": "jev-crutch-words",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test",
+    "server": "tsx watch server/index.ts",
+    "dev": "concurrently -n web,api -c cyan,magenta \"npm:start\" \"npm:server\"",
+    "typecheck:server": "tsc -p server/tsconfig.json"
+  },
+  "private": true,
+  "packageManager": "npm@11.13.0",
+  "dependencies": {
+    "@angular/common": "^22.0.0",
+    "@angular/compiler": "^22.0.0",
+    "@angular/core": "^22.0.0",
+    "@angular/forms": "^22.0.0",
+    "@angular/platform-browser": "^22.0.0",
+    "@angular/router": "^22.0.0",
+    "@typesafe-ai/sdk": "^0.6.0",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.6",
+    "express": "^5.2.1",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^22.0.3",
+    "@angular/cli": "^22.0.3",
+    "@angular/compiler-cli": "^22.0.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.6.4",
+    "concurrently": "^10.0.5",
+    "jsdom": "^28.0.0",
+    "prettier": "^3.8.1",
+    "tsx": "^4.23.15",
+    "typescript": "~6.0.2",
+    "vitest": "^4.0.8"
+  }
+}

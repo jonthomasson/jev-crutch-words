@@ -1,0 +1,89 @@
+/* Global styles: colour tokens chosen for WCAG AA contrast on both themes. */
+:root {
+  --bg: #f4f6f8;
+  --surface: #ffffff;
+  --text: #1b1f24;
+  --muted: #5b6470;
+  --border: #d9dee5;
+  --accent: #0b5fff;
+  --jev: #6d28d9;
+  --danger: #b42318;
+  --danger-bg: #fde8e6;
+  --danger-fg: #7a1710;
+  --focus: #ffb703;
+  --chip-bg: #e7ebf0;
+  --chip-fg: #1b1f24;
+  --live-bg: #d7f5e3;
+  --live-fg: #0b5a2f;
+  --ok-bg: #d7f5e3;
+  --ok-fg: #0b5a2f;
+  --warn-bg: #fff1cc;
+  --warn-fg: #6b4a00;
+  --hard-bg: #fde8e6;
+  --hard-fg: #7a1710;
+  --filler-bg: #ffe2c2;
+  --filler-fg: #7a3b00;
+  --unsure-bg: #fff6d6;
+  --unsure-fg: #5a4300;
+  --meaningful-bg: #e3f1ff;
+  --meaningful-fg: #0b3d91;
+  --toast-bg: #1b1f24;
+  --toast-fg: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1216;
+    --surface: #181c22;
+    --text: #e8ecf1;
+    --muted: #a3adba;
+    --border: #2b323b;
+    --accent: #6ea8ff;
+    --jev: #b794f6;
+    --danger: #ff8a80;
+    --danger-bg: #3a1714;
+    --danger-fg: #ffc9c4;
+    --focus: #ffd166;
+    --chip-bg: #262c35;
+    --chip-fg: #e8ecf1;
+    --live-bg: #11362a;
+    --live-fg: #9ef0c0;
+    --ok-bg: #11362a;
+    --ok-fg: #9ef0c0;
+    --warn-bg: #3b2f05;
+    --warn-fg: #ffe08a;
+    --hard-bg: #4a1a16;
+    --hard-fg: #ffb3ad;
+    --filler-bg: #4a2a0a;
+    --filler-fg: #ffcf99;
+    --unsure-bg: #3b3205;
+    --unsure-fg: #ffe99a;
+    --meaningful-bg: #10294d;
+    --meaningful-fg: #b7d4ff;
+    --toast-bg: #e8ecf1;
+    --toast-fg: #0f1216;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+code,
+pre {
+  font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+}
