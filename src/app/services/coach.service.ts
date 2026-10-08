@@ -186,6 +186,7 @@ export class CoachService {
       .flatMap((s) => candidatesFor(s.id, s.text))
       .filter((c) => !known.has(c.id));
 
+    //example of speculative fan-out
     this.analyzing.set(true);
     this.lastAnalyzedSegmentId = last.id;
     try {
@@ -228,6 +229,7 @@ export class CoachService {
     }
     const rate = this.fillersPerMinute();
     const overRate = rate >= this.thresholdPerMinute();
+    //confidence gated routing
     const jevAgrees =
       response.disruption.score >= NUDGE_MIN_DISRUPTION && response.disruption.confidence >= NUDGE_MIN_CONFIDENCE;
 

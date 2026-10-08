@@ -73,6 +73,7 @@ app.post('/api/analyze', async (req: Request, res: Response) => {
 
   try {
     const started = performance.now();
+    //console.log(`state: ${JSON.stringify(state)}, questions: ${JSON.stringify(questions)}`);
     const result = client ? await client.systemOne({ state, questions }) : mockSystemOne(request, questions);
     const latencyMs = Math.round(performance.now() - started);
 

@@ -45,6 +45,8 @@ The problems with using chat LLMs as components inside software:
 3. **Latency and cost.** Sequential token generation is slow and expensive for a decision that is a single bit.
 4. **Training objective.** RLHF optimises for what a human *prefers to read*, which is not the same as being calibrated. They cite mode dropping and overconfidence as consequences.
 
+**RLHF vs RLCD, one minute.** RLHF (reinforcement learning from human feedback) rewards the text a human rater prefers; RLCD (reinforcement learning for calibrated decisions) rewards whether the stated probability matches the real outcome. RLHF produces free text and, as a side effect, mode dropping and overconfidence, so "how sure are you?" gets a number nobody trained the model to get right (calibration degrading after RLHF is also in OpenAI's GPT-4 technical report). RLCD produces a probability over options you supplied, trained for honest uncertainty. TypeSafe sets RLCD against both human-preference rewards and verifiable rewards (RLVR, used for reasoning models), saying neither targets calibration directly. The method itself is not published, so stay at the level of what each one rewards.
+
 TypeSafe's answer: give up strings. "Giving up strings actually gives us a lot of superpowers":
 
 - Train with **RLCD** (Reinforcement Learning for Calibrated Decisions): the reward is epistemically honest probabilities, so higher confidence actually correlates with higher accuracy.
@@ -162,6 +164,23 @@ Fallbacks for the demo gods:
 - No mic / noisy room: the "type a line" box uses the same pipeline.
 - No network: `TYPESAFE_MOCK=1` gives a heuristic stand-in with the same response shape (say so on stage).
 - Chrome usually strips "um/uh" from transcripts. If the room asks why the "um" count is low, that's why. Word fillers are the interesting ones anyway.
+
+## 6b. The agent skill (2 min)
+
+TypeSafe ships a skill for coding agents (docs.typesafe.ai/agent-skill). It is one Markdown file, no code: it sends the agent to the live docs index and cookbooks first, then gives a primitive-picking table, the patterns and composition rules.
+
+Install for Claude Code (user-level):
+
+```bash
+claude plugin marketplace add typesafe-ai/skills
+claude plugin install typesafe@typesafe-ai
+```
+
+Restart or `/reload-plugins`, then mention TypeSafe in a prompt or run `/typesafe:typesafe-ai`. Other agents: `npx skills add typesafe-ai/skills --skill typesafe-ai` (project-local by default, `-g` for global). Use one route only. Update with the same commands using `update`, or auto-update from `/plugin`.
+
+Their tips are the talk-worthy part: plan first and review before code; keep questions and thresholds in one file; expect to edit questions yourself ("agents are not especially good at writing questions"); if routing misbehaves, thresholds are too high (misses) or too low (false alarms); if you only need the best option, take the highest confidence instead of a threshold; if the agent invents fields, the skill is stale.
+
+Optional live beat: with the skill installed, ask Claude Code to add one more question to `server/jev-questions.ts` and watch it read the docs index before writing.
 
 ## 7. When to reach for Jev, and when not (3 min)
 
